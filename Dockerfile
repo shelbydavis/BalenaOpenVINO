@@ -66,7 +66,7 @@ RUN curl -s -L https://github.com/opencv/opencv/archive/4.1.2.tar.gz | tar xzf -
         -D OPENCV_ENABLE_NONFREE=ON \
         -D CMAKE_SHARED_LINKER_FLAGS=-latomic \
         -D BUILD_EXAMPLES=OFF \
-        -DPYTHON3_EXECUTABLE=/usr/local/python3.6 \
+        -DPYTHON3_EXECUTABLE=/usr/local/bin/python3.6 \
         –DPYTHON_INCLUDE_DIR=/usr/local/include/python3.6m \
         –DPYTHON_LIBRARY=/usr/local/lib/libpython3.6m.so \
  	-D WITH_INF_ENGINE=ON \
