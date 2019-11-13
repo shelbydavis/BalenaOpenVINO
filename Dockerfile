@@ -25,31 +25,6 @@ RUN install_packages \
     curl -s https://bootstrap.pypa.io/get-pip.py | python3.6 && \
     python3.6 -m pip install numpy cython
 
-# Download OpenVINO
-RUN git clone https://github.com/opencv/dldt.git && \
-    cd /dldt/inference-engine/ && \
-    git checkout 2019_R3.1 && \
-    git submodule init && \
-    git submodule update --recursive && \
-# Build OpenVINO
-    mkdir -p /inference-engine-build && cd /inference-engine-build && \
-# Remove the last line from this one file so we can compile... 
-    sed -i "$(($(wc -l < /dldt/inference-engine/ie_bridges/python/CMakeLists.txt))),\$d" \
-        /dldt/inference-engine/ie_bridges/python/CMakeLists.txt && \
-    cmake -DCMAKE_BUILD_TYPE=Release \
-        -DENABLE_MKL_DNN=OFF \
-        -DENABLE_CLDNN=OFF \
-        -DENABLE_GNA=OFF \
-        -DENABLE_SSE42=OFF \
-	-DENABLE_OPENCV=OFF \
-	-DTHREADING=SEQ \
-	-DENABLE_PYTHON=ON \
-	-DPYTHON_EXECUTABLE=/usr/local/bin/python3.6 \
-	-DPYTHON_LIBRARY=/usr/local/lib/libpython3.6m.so \
-	-DPYTHON_INCLUDE_DIR=/usr/local/include/python3.6m \
-        /dldt/inference-engine && \
-    make --jobs=$(nproc --all)
-
 # Download OpenCV
 RUN curl -s -L https://github.com/opencv/opencv/archive/4.1.2.tar.gz | tar xzf - && \
     mv /opencv-4.1.2 /opencv && \
@@ -69,13 +44,34 @@ RUN curl -s -L https://github.com/opencv/opencv/archive/4.1.2.tar.gz | tar xzf -
         -DPYTHON3_EXECUTABLE=/usr/local/bin/python3.6 \
         –DPYTHON_INCLUDE_DIR=/usr/local/include/python3.6m \
         –DPYTHON_LIBRARY=/usr/local/lib/libpython3.6m.so \
- 	-D WITH_INF_ENGINE=ON \
- 	-D INF_ENGINE_LIB_DIRS="/inference-engine-build/bin/armv7l/Release/lib" \
- 	-D INF_ENGINE_INCLUDE_DIRS="/inference-engine-build/include" \
- 	-D CMAKE_FIND_ROOT_PATH="/inference-engine-build/" \
         /opencv && \
-    make --jobs=$(nproc --all) && \
-    make install && \
-    cd / && rm -rf /opencv /opencv_contrib /opencv-build
+    make --jobs=$(nproc --all)
+
+ENV OpenCV_DIR=/opencv-build
+
+# Download OpenVINO
+RUN git clone https://github.com/opencv/dldt.git && \
+    cd /dldt/inference-engine/ && \
+    git checkout 2019_R3.1 && \
+    git submodule init && \
+    git submodule update --recursive && \
+# Build OpenVINO
+    mkdir -p /inference-engine-build && cd /inference-engine-build && \
+# Remove the last line from this one file so we can compile... 
+    sed -i "$(($(wc -l < /dldt/inference-engine/ie_bridges/python/CMakeLists.txt))),\$d" \
+        /dldt/inference-engine/ie_bridges/python/CMakeLists.txt && \
+    cmake -DCMAKE_BUILD_TYPE=Release \
+        -DENABLE_MKL_DNN=OFF \
+        -DENABLE_CLDNN=OFF \
+        -DENABLE_GNA=OFF \
+        -DENABLE_SSE42=OFF \
+	-DTHREADING=SEQ \
+	-DENABLE_PYTHON=ON \
+	-DPYTHON_EXECUTABLE=/usr/local/bin/python3.6 \
+	-DPYTHON_LIBRARY=/usr/local/lib/libpython3.6m.so \
+	-DPYTHON_INCLUDE_DIR=/usr/local/include/python3.6m \
+        /dldt/inference-engine && \
+    make --jobs=$(nproc --all)
+
 
 ENTRYPOINT ["python3"]
