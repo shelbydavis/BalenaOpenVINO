@@ -29,7 +29,8 @@ RUN install_packages \
 RUN cd /tmp/ && \
    curl -s -L https://github.com/libusb/libusb/releases/download/v1.0.23/libusb-1.0.23.tar.bz2 | tar xjf - && \
    cd libusb-1.0.23 && \
-   ./configure --disable-udev --enable-shared && \
+#   ./configure --disable-udev --enable-shared && \
+   ./configure --enable-shared && \
    make -j4 && make install && \
    rm -rf /tmp/libusb-1.0.23
 
@@ -89,4 +90,8 @@ RUN git clone https://github.com/opencv/dldt.git && \
 ENV IE_PLUGINS_PATH=/dldt/inference-engine/bin/armv7l/Release/lib
 ENV LD_LIBRARY_PATH=${IE_PLUGINS_PATH}:${LD_LIBRARY_PATH}
 ENV PATH=${PATH}:/dldt/inference-engine/bin/armv7l/Release
-ENTRYPOINT ["python3"]
+RUN wget https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/NASA_Astronaut_Group_18.jpg/1018px-NASA_Astronaut_Group_18.jpg && \
+    wget https://download.01.org/opencv/2019/open_model_zoo/R1/models_bin/face-detection-adas-0001/FP16/face-detection-adas-0001.xml && \
+    wget https://download.01.org/opencv/2019/open_model_zoo/R1/models_bin/face-detection-adas-0001/FP16/face-detection-adas-0001.bin 
+
+CMD ["/dldt/inference-engine/bin/armv7l/Release/object_detection_sample_ssd", "-m", "face-detection-adas-0001.xml", "-d", "MYRIAD", "-i", "1018px-NASA_Astronaut_Group_18.jpg"]
