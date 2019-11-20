@@ -1,4 +1,4 @@
-FROM balenalib/raspberrypi4-64-debian-python:3.6-buster-build
+FROM balenalib/raspberrypi3-debian-python:3.6-buster-build
 ARG OpenCV_Version=4.1.2
 ARG OpenVINO_Release=2019_R3.1
 # enable access to the USB ports
@@ -19,12 +19,19 @@ RUN install_packages \
     libxvidcore-dev \
     libx264-dev \
     libatlas-base-dev \
-    gfortran \
-    libusb-1.0.0-dev && \
+    gfortran && \
     cd /usr/include/linux && \
     ln -s -f ../libv4l1-videodev.h videodev.h && \
     curl -s https://bootstrap.pypa.io/get-pip.py | python3.6 && \
     python3.6 -m pip install numpy cython
+
+# Make a libUSB that doesn't support udev to keep the NCS2 from reconnecting
+RUN cd /tmp/ && \
+   curl -s -L https://github.com/libusb/libusb/releases/download/v1.0.23/libusb-1.0.23.tar.bz2 | tar xjf - && \
+   cd libusb-1.0.23 && \
+   ./configure --disable-udev --enable-shared && \
+   make -j4 && make install && \
+   rm -rf /tmp/libusb-1.0.23
 
 # Download OpenCV
 RUN curl -s -L https://github.com/opencv/opencv/archive/${OpenCV_Version}.tar.gz | tar xzf - && \
@@ -69,8 +76,6 @@ RUN git clone https://github.com/opencv/dldt.git && \
         -DENABLE_GNA=OFF \
         -DENABLE_SSE42=OFF \
 	-DENABLE_MYRIAD=ON \
-	-DENABLE_TESTS=ON \
-	-DENABLE_MYRIAD_MVNC_TESTS=ON \
 	-DTHREADING=SEQ \
 	-DENABLE_PYTHON=ON \
 	-DPYTHON_EXECUTABLE=/usr/local/bin/python3.6 \
