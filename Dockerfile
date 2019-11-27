@@ -76,14 +76,15 @@ RUN git clone https://github.com/opencv/dldt.git && \
 	-DPYTHON_INCLUDE_DIR=/usr/local/include/python3.6m \
         /dldt/inference-engine && \
     make --jobs=$(nproc --all) && \
-    cd / && rm -rf /inference-engine-build && \
-    cp /dldt/inference-engine/thirdparty/movidius/mvnc/src/97-myriad-usbboot.rules /etc/udev/rules.d
+    cd / && rm -rf /inference-engine-build 
 
 ENV IE_PLUGINS_PATH=/dldt/inference-engine/bin/armv7l/Release/lib
 ENV LD_LIBRARY_PATH=${IE_PLUGINS_PATH}:${LD_LIBRARY_PATH}
 ENV PATH=${PATH}:/dldt/inference-engine/bin/armv7l/Release
-RUN wget https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/NASA_Astronaut_Group_18.jpg/1018px-NASA_Astronaut_Group_18.jpg && \
-    wget https://download.01.org/opencv/2019/open_model_zoo/R1/models_bin/face-detection-adas-0001/FP16/face-detection-adas-0001.xml && \
-    wget https://download.01.org/opencv/2019/open_model_zoo/R1/models_bin/face-detection-adas-0001/FP16/face-detection-adas-0001.bin 
 
+# Get some demo model files and a test image
+RUN wget https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/NASA_Astronaut_Group_18.jpg/1018px-NASA_Astronaut_Group_18.jpg && \
+    wget https://download.01.org/opencv/2019/open_model_zoo/R3/20190905_163000_models_bin/face-detection-adas-0001/FP16/face-detection-adas-0001.xml && \
+    wget https://download.01.org/opencv/2019/open_model_zoo/R3/20190905_163000_models_bin/face-detection-adas-0001/FP16/face-detection-adas-0001.bin 
+# Run a simple test to see if it all works
 CMD ["/dldt/inference-engine/bin/armv7l/Release/object_detection_sample_ssd", "-m", "face-detection-adas-0001.xml", "-d", "MYRIAD", "-i", "1018px-NASA_Astronaut_Group_18.jpg"]
